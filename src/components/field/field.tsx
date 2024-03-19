@@ -6,6 +6,10 @@ export const Field: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [balls, setBalls] = useState<Ball[]>([]);
   const [score, setScore] = useState<number>(0);
+  const [selectedBall, setSelectedBall] = useState<Ball | null>(null);
+  const [colorMenuVisible, setColorMenuVisible] = useState<boolean>(false);
+  const [mouseX, setMouseX] = useState<number>(0);
+  const [mouseY, setMouseY] = useState<number>(0);
 
   // Инициализация шаров при загрузке компонента
   useEffect(() => {
@@ -214,6 +218,59 @@ export const Field: React.FC = () => {
     setBalls(prevBalls => prevBalls.filter(b => b !== ball));
   };
 
+  const handleRightClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault(); // Предотвращаем отображение контекстного меню браузера
+
+    const mouseX = event.nativeEvent.offsetX;
+    const mouseY = event.nativeEvent.offsetY;
+
+    setMouseX(mouseX);
+    setMouseY(mouseY);
+
+    // Находим шар, на который был совершен правый клик
+    const ballClicked = balls.find(ball => {
+      const dx = mouseX - ball.x;
+      const dy = mouseY - ball.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < ball.radius;
+    });
+
+    if (ballClicked) {
+      setSelectedBall(ballClicked); // Устанавливаем выбранный шар для изменения его цвета
+      setColorMenuVisible(true); // Показываем меню выбора цвета
+    }
+  };
+
+  // Обработчик выбора цвета из меню
+  const handleColorSelection = (color: string) => {
+    if (selectedBall) {
+      const updatedBalls = balls.map(ball => {
+        if (ball.mass === selectedBall.mass) {
+          return { ...ball, color }; // Обновляем цвет выбранного шара
+        }
+        return ball;
+      });
+      setBalls(updatedBalls); // Обновляем состояние шаров
+    }
+    setColorMenuVisible(false); // Скрываем меню выбора цвета после выбора цвета
+  };
+
+  // Функция для рендеринга меню выбора цвета
+  const renderColorMenu = () => {
+    if (selectedBall && colorMenuVisible) {
+      return (
+        <div className="color-menu" style={{ top: mouseY, left: mouseX }}>
+          <div className="color-option" style={{ backgroundColor: 'red' }} onClick={() => handleColorSelection('red')}></div>
+          <div className="color-option" style={{ backgroundColor: 'white' }} onClick={() => handleColorSelection('white')}></div>
+          <div className="color-option" style={{ backgroundColor: 'black' }} onClick={() => handleColorSelection('black')}></div>
+          <div className="color-option" style={{ backgroundColor: 'yellow' }} onClick={() => handleColorSelection('yellow')}></div>
+          <div className="color-option" style={{ backgroundColor: 'brown' }} onClick={() => handleColorSelection('brown')}></div>
+          <div className="color-option" style={{ backgroundColor: 'violet' }} onClick={() => handleColorSelection('violet')}></div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="field">
@@ -222,9 +279,17 @@ export const Field: React.FC = () => {
         className="field-canvas"
         width={600}
         height={780}
-        onMouseDown={handleMouseDown}
+        onMouseDown={e => {
+          if (e.button === 0) {
+            handleMouseDown(e);
+          }
+        }}
+        onContextMenu={handleRightClick}
       ></canvas>
+      {renderColorMenu()}
       <div className="field-score">Score: {score}</div>
     </div>
   );
 };
+
+export default Field;
