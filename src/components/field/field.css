@@ -1,0 +1,12 @@
+.field {
+  background-color: green;
+  border: 18px solid #003300;
+  box-shadow: 0px 10px 20px 0px rgba(0, 51, 0, 0.7) inset;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.field-canvas {
+  display: block;
+}
