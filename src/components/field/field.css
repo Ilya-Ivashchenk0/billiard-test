@@ -10,3 +10,9 @@
 .field-canvas {
   display: block;
 }
+
+.field-score {
+  position: absolute;
+  top: -50px;
+  left: -200px;
+}

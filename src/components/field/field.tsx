@@ -5,6 +5,7 @@ import { Ball } from './types';
 export const Field: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [balls, setBalls] = useState<Ball[]>([]);
+  const [score, setScore] = useState<number>(0);
 
   // Инициализация шаров при загрузке компонента
   useEffect(() => {
@@ -24,7 +25,16 @@ export const Field: React.FC = () => {
         });
     }
     setBalls(initialBalls);
-}, []);
+  }, []);
+
+  useEffect(() => {
+    balls.forEach(ball => {
+      if (isBallInPocket(ball)) {
+        // Попал шар в лузу, выполняем нужные действия
+        handleBallInPocket(ball);
+      }
+    });
+  }, [balls]);
 
   // Отрисовка шаров на холсте при изменении их состояния
   useEffect(() => {
@@ -172,6 +182,38 @@ export const Field: React.FC = () => {
     }
   };
 
+  const isBallInPocket = (ball: Ball) => {
+    const pockets = [
+      { x: 0, y: 0, width: 15, height: 15 }, // Левая верхняя луза /
+      { x: 0, y: 760, width: 15, height: 15 }, // Левая нижняя луза /
+      { x: 590, y: 20, width: 15, height: 15 }, // Правая верхняя луза /
+      { x: 590, y: 760, width: 15, height: 15 }, // Правая нижняя луза /
+      { x: 0, y: 390, width: 15, height: 15 }, // Луза в центре слева /
+      { x: 590, y: 390, width: 15, height: 15 } // Луза в центре справа /
+    ];
+
+    for (const pocket of pockets) {
+      if (
+        ball.x + ball.radius >= pocket.x &&
+        ball.x - ball.radius <= pocket.x + pocket.width &&
+        ball.y + ball.radius >= pocket.y &&
+        ball.y - ball.radius <= pocket.y + pocket.height
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const handleBallInPocket = (ball: Ball) => {
+    // Увеличиваем счетчик на 1
+    setScore(prevScore => prevScore + 1);
+
+    // Удаляем шар из массива balls
+    setBalls(prevBalls => prevBalls.filter(b => b !== ball));
+  };
+
 
   return (
     <div className="field">
@@ -182,6 +224,7 @@ export const Field: React.FC = () => {
         height={780}
         onMouseDown={handleMouseDown}
       ></canvas>
+      <div className="field-score">Score: {score}</div>
     </div>
   );
 };
