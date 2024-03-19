@@ -3,6 +3,7 @@ export interface Ball {
   y: number;
   radius: number;
   color: string;
+  mass: number
   vx: number;
   vy: number;
 }

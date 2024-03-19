@@ -10,17 +10,21 @@ export const Field: React.FC = () => {
   useEffect(() => {
     const initialBalls: Ball[] = [];
     for (let i = 0; i < 20; i++) {
+        const radius = Math.random() * (30 - 10) + 10; // Генерация случайного радиуса в диапазоне от 10 до 30
+        const mass = Math.PI * radius * radius; // Вычисление массы шара на основе его радиуса
+
         initialBalls.push({
-            x: Math.random() * (canvasRef.current!.width - 40) + 20, // Ограничиваем зону появления шаров по ширине холста
-            y: Math.random() * (canvasRef.current!.height - 40) + 20, // Ограничиваем зону появления шаров по высоте холста
-            radius: 20,
+            x: Math.random() * (canvasRef.current!.width - radius * 2) + radius, // Ограничиваем зону появления шаров по ширине холста
+            y: Math.random() * (canvasRef.current!.height - radius * 2) + radius, // Ограничиваем зону появления шаров по высоте холста
+            radius: radius,
             color: getRandomColor(),
+            mass: mass, // Добавляем массу шара в объект
             vx: 0,
             vy: 0,
         });
     }
     setBalls(initialBalls);
-  }, []);
+}, []);
 
   // Отрисовка шаров на холсте при изменении их состояния
   useEffect(() => {
@@ -68,7 +72,7 @@ export const Field: React.FC = () => {
 
         return newBalls; // Возврат обновленного массива шаров
       });
-    }, 20);
+    }, 10);
 
     // Остановка интервала при размонтировании компонента
     return () => clearInterval(interval);
@@ -126,41 +130,48 @@ export const Field: React.FC = () => {
 
   // Обработка столкновения двух шаров
   const handleBallCollision = (ballA: Ball, ballB: Ball) => {
-    const dx = ballB.x - ballA.x; // Разница координат X между шарами
-    const dy = ballB.y - ballA.y; // Разница координат Y между шарами
-    const distance = Math.sqrt(dx * dx + dy * dy); // Расстояние между шарами
+    const dx = ballB.x - ballA.x;
+    const dy = ballB.y - ballA.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Если расстояние меньше суммы радиусов шаров (произошло столкновение)
     if (distance < ballA.radius + ballB.radius) {
-        // Находим угол столкновения
         const collisionAngle = Math.atan2(dy, dx);
 
-        // Проекции скоростей на ось столкновения
-        const v1 = ballA.vx * Math.cos(collisionAngle) + ballA.vy * Math.sin(collisionAngle);
-        const v2 = ballB.vx * Math.cos(collisionAngle) + ballB.vy * Math.sin(collisionAngle);
+        // Вычисляем компоненты скоростей по направлению столкновения
+        const v1x = ballA.vx * Math.cos(collisionAngle) + ballA.vy * Math.sin(collisionAngle);
+        const v1y = ballA.vy * Math.cos(collisionAngle) - ballA.vx * Math.sin(collisionAngle);
+        const v2x = ballB.vx * Math.cos(collisionAngle) + ballB.vy * Math.sin(collisionAngle);
+        const v2y = ballB.vy * Math.cos(collisionAngle) - ballB.vx * Math.sin(collisionAngle);
 
-        // Новые скорости после столкновения по оси столкновения (используем одномерную формулу упругого соударения)
-        const newV1 = ((ballA.radius - ballB.radius) * v1 + 2 * ballB.radius * v2) / (ballA.radius + ballB.radius);
-        const newV2 = ((ballB.radius - ballA.radius) * v2 + 2 * ballA.radius * v1) / (ballA.radius + ballB.radius);
+        // Упругое столкновение с учетом массы
+        const newV1x = ((ballA.mass - ballB.mass) * v1x + 2 * ballB.mass * v2x) / (ballA.mass + ballB.mass);
+        const newV2x = ((ballB.mass - ballA.mass) * v2x + 2 * ballA.mass * v1x) / (ballA.mass + ballB.mass);
 
-        // Возвращаем скорости на исходные координаты
-        ballA.vx = newV1 * Math.cos(collisionAngle) - v1 * Math.sin(collisionAngle);
-        ballA.vy = newV1 * Math.sin(collisionAngle) + v1 * Math.cos(collisionAngle);
-        ballB.vx = newV2 * Math.cos(collisionAngle) - v2 * Math.sin(collisionAngle);
-        ballB.vy = newV2 * Math.sin(collisionAngle) + v2 * Math.cos(collisionAngle);
+        // Преобразуем обратно в координаты X и Y
+        const finalV1x = newV1x * Math.cos(collisionAngle) - v1y * Math.sin(collisionAngle);
+        const finalV1y = newV1x * Math.sin(collisionAngle) + v1y * Math.cos(collisionAngle);
+        const finalV2x = newV2x * Math.cos(collisionAngle) - v2y * Math.sin(collisionAngle);
+        const finalV2y = newV2x * Math.sin(collisionAngle) + v2y * Math.cos(collisionAngle);
+
+        // Устанавливаем новые скорости
+        ballA.vx = finalV1x;
+        ballA.vy = finalV1y;
+        ballB.vx = finalV2x;
+        ballB.vy = finalV2y;
 
         // Отталкивание шаров друг от друга, чтобы они не "склеивались"
         const overlap = (ballA.radius + ballB.radius) - distance;
         const overlapVector = { x: overlap * Math.cos(collisionAngle), y: overlap * Math.sin(collisionAngle) };
-        const totalMass = ballA.radius + ballB.radius;
-        const ratioA = ballA.radius / totalMass;
-        const ratioB = ballB.radius / totalMass;
+        const totalMass = ballA.mass + ballB.mass;
+        const ratioA = ballA.mass / totalMass;
+        const ratioB = ballB.mass / totalMass;
         ballA.x -= overlapVector.x * ratioA;
         ballA.y -= overlapVector.y * ratioA;
         ballB.x += overlapVector.x * ratioB;
         ballB.y += overlapVector.y * ratioB;
     }
-};
+  };
+
 
   return (
     <div className="field">
