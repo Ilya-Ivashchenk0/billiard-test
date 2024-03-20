@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { MouseEvent, useEffect, useRef, useState } from 'react';
 import './field.css';
 import { Ball } from './types';
+import { Canvas } from '../canvas';
+import { ColorMenu } from '../color-menu';
+import { Score } from '../score';
 
 export const Field: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,7 +25,7 @@ export const Field: React.FC = () => {
             x: Math.random() * (canvasRef.current!.width - radius * 2) + radius, // Ограничиваем зону появления шаров по ширине холста
             y: Math.random() * (canvasRef.current!.height - radius * 2) + radius, // Ограничиваем зону появления шаров по высоте холста
             radius: radius,
-            color: getRandomColor(),
+            color: 'white',
             mass: mass, // Добавляем массу шара в объект
             vx: 0,
             vy: 0,
@@ -49,6 +52,7 @@ export const Field: React.FC = () => {
     if (!context) return;
 
     redrawCanvas(context, canvas);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [balls]);
 
   // Обновление состояния шаров и их позиций через определенные интервалы времени
@@ -108,18 +112,8 @@ export const Field: React.FC = () => {
     });
   };
 
-  // Генерация случайного цвета для шара
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
-
   // Обработчик нажатия мыши для изменения скорости шара
-  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleMouseDown = (event: MouseEvent<HTMLCanvasElement>) => {
     const mouseX = event.nativeEvent.offsetX;
     const mouseY = event.nativeEvent.offsetY;
 
@@ -174,27 +168,27 @@ export const Field: React.FC = () => {
         ballB.vy = finalV2y;
 
         // Отталкивание шаров друг от друга, чтобы они не "склеивались"
-        const overlap = (ballA.radius + ballB.radius) - distance;
-        const overlapVector = { x: overlap * Math.cos(collisionAngle), y: overlap * Math.sin(collisionAngle) };
-        const totalMass = ballA.mass + ballB.mass;
-        const ratioA = ballA.mass / totalMass;
-        const ratioB = ballB.mass / totalMass;
-        ballA.x -= overlapVector.x * ratioA;
-        ballA.y -= overlapVector.y * ratioA;
-        ballB.x += overlapVector.x * ratioB;
-        ballB.y += overlapVector.y * ratioB;
+        const overlap = (ballA.radius + ballB.radius) - distance
+        const overlapVector = { x: overlap * Math.cos(collisionAngle), y: overlap * Math.sin(collisionAngle) }
+        const totalMass = ballA.mass + ballB.mass
+        const ratioA = ballA.mass / totalMass
+        const ratioB = ballB.mass / totalMass
+        ballA.x -= overlapVector.x * ratioA
+        ballA.y -= overlapVector.y * ratioA
+        ballB.x += overlapVector.x * ratioB
+        ballB.y += overlapVector.y * ratioB
     }
-  };
+  }
 
   const isBallInPocket = (ball: Ball) => {
-    const pockets = [
-      { x: 0, y: 0, width: 15, height: 15 }, // Левая верхняя луза /
-      { x: 0, y: 760, width: 15, height: 15 }, // Левая нижняя луза /
-      { x: 590, y: 20, width: 15, height: 15 }, // Правая верхняя луза /
-      { x: 590, y: 760, width: 15, height: 15 }, // Правая нижняя луза /
-      { x: 0, y: 390, width: 15, height: 15 }, // Луза в центре слева /
-      { x: 590, y: 390, width: 15, height: 15 } // Луза в центре справа /
-    ];
+    const pockets = [ // Координаты луз на столе
+      { x: 0, y: 0, width: 15, height: 15 },
+      { x: 0, y: 760, width: 15, height: 15 },
+      { x: 590, y: 20, width: 15, height: 15 },
+      { x: 590, y: 760, width: 15, height: 15 },
+      { x: 0, y: 390, width: 15, height: 15 },
+      { x: 590, y: 390, width: 15, height: 15 }
+    ]
 
     for (const pocket of pockets) {
       if (
@@ -203,93 +197,75 @@ export const Field: React.FC = () => {
         ball.y + ball.radius >= pocket.y &&
         ball.y - ball.radius <= pocket.y + pocket.height
       ) {
-        return true;
+        return true
       }
     }
 
-    return false;
-  };
+    return false
+  }
 
   const handleBallInPocket = (ball: Ball) => {
-    // Увеличиваем счетчик на 1
-    setScore(prevScore => prevScore + 1);
+    setScore(prevScore => prevScore + 1)
 
-    // Удаляем шар из массива balls
-    setBalls(prevBalls => prevBalls.filter(b => b !== ball));
-  };
+    setBalls(prevBalls => prevBalls.filter(b => b !== ball)) // Удаляем шар из массива balls
+  }
 
   const handleRightClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    event.preventDefault(); // Предотвращаем отображение контекстного меню браузера
+    event.preventDefault()
 
-    const mouseX = event.nativeEvent.offsetX;
-    const mouseY = event.nativeEvent.offsetY;
+    const mouseX = event.nativeEvent.offsetX
+    const mouseY = event.nativeEvent.offsetY
 
-    setMouseX(mouseX);
-    setMouseY(mouseY);
+    setMouseX(mouseX)
+    setMouseY(mouseY)
 
-    // Находим шар, на который был совершен правый клик
-    const ballClicked = balls.find(ball => {
-      const dx = mouseX - ball.x;
-      const dy = mouseY - ball.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance < ball.radius;
-    });
+
+    const ballClicked = balls.find(ball => { // Находим шар, на который был совершен правый клик
+      const dx = mouseX - ball.x
+      const dy = mouseY - ball.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      return distance < ball.radius
+    })
 
     if (ballClicked) {
-      setSelectedBall(ballClicked); // Устанавливаем выбранный шар для изменения его цвета
-      setColorMenuVisible(true); // Показываем меню выбора цвета
+      setSelectedBall(ballClicked) // Устанавливаем выбранный шар для изменения его цвета
+      setColorMenuVisible(true) // Показываем меню выбора цвета
     }
-  };
+  }
 
   // Обработчик выбора цвета из меню
   const handleColorSelection = (color: string) => {
     if (selectedBall) {
       const updatedBalls = balls.map(ball => {
         if (ball.mass === selectedBall.mass) {
-          return { ...ball, color }; // Обновляем цвет выбранного шара
+          return { ...ball, color } // Обновляем цвет выбранного шара
         }
-        return ball;
-      });
-      setBalls(updatedBalls); // Обновляем состояние шаров
+        return ball
+      })
+      setBalls(updatedBalls) // Обновляем состояние шаров
     }
-    setColorMenuVisible(false); // Скрываем меню выбора цвета после выбора цвета
-  };
-
-  // Функция для рендеринга меню выбора цвета
-  const renderColorMenu = () => {
-    if (selectedBall && colorMenuVisible) {
-      return (
-        <div className="color-menu" style={{ top: mouseY, left: mouseX }}>
-          <div className="color-option" style={{ backgroundColor: 'red' }} onClick={() => handleColorSelection('red')}></div>
-          <div className="color-option" style={{ backgroundColor: 'white' }} onClick={() => handleColorSelection('white')}></div>
-          <div className="color-option" style={{ backgroundColor: 'black' }} onClick={() => handleColorSelection('black')}></div>
-          <div className="color-option" style={{ backgroundColor: 'yellow' }} onClick={() => handleColorSelection('yellow')}></div>
-          <div className="color-option" style={{ backgroundColor: 'brown' }} onClick={() => handleColorSelection('brown')}></div>
-          <div className="color-option" style={{ backgroundColor: 'violet' }} onClick={() => handleColorSelection('violet')}></div>
-        </div>
-      );
-    }
-    return null;
-  };
+    setColorMenuVisible(false) // Скрываем меню выбора цвета после выбора цвета
+  }
 
   return (
     <div className="field">
-      <canvas
-        ref={canvasRef}
-        className="field-canvas"
-        width={600}
-        height={780}
-        onMouseDown={e => {
+      <Canvas
+        canvasRef={canvasRef}
+        className='field-canvas'
+        handleMouseDown={e => {
           if (e.button === 0) {
-            handleMouseDown(e);
+            handleMouseDown(e)
           }
         }}
-        onContextMenu={handleRightClick}
-      ></canvas>
-      {renderColorMenu()}
-      <div className="field-score">Score: {score}</div>
+        handleRightClick={handleRightClick}
+      />
+      <ColorMenu
+        mouseX={mouseX}
+        mouseY={mouseY}
+        colorMenuVisible={colorMenuVisible}
+        handleColorSelection={handleColorSelection}
+      />
+      <Score score={score} />
     </div>
-  );
-};
-
-export default Field;
+  )
+}

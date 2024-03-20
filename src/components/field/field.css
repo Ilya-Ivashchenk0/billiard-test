@@ -7,36 +7,8 @@
   z-index: 1;
 }
 
-.field-canvas {
-  display: block;
-}
-
 .field-score {
   position: absolute;
   top: -50px;
   left: -200px;
-}
-
-.color-menu {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 5px;
-  background-color: #f7eaea;
-  border: 1px solid #cccccc;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  z-index: 5;
-}
-
-.color-option {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 6;
 }
