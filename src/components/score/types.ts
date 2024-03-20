@@ -1,3 +1,3 @@
 export interface scoreProps {
-  score: number;
+	score: number
 }

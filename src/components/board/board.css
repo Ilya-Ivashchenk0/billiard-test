@@ -1,8 +1,8 @@
 .board {
-  position: relative;
-  min-width: 636px;
-  min-height: 816px;
-  border: 40px solid #512a15;
-  border-radius: 10px;
-  display: flex;
+	position: relative;
+	min-width: 636px;
+	min-height: 816px;
+	border: 40px solid #512a15;
+	border-radius: 10px;
+	display: flex;
 }

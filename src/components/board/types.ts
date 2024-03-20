@@ -1,3 +1,1 @@
-export interface boardProps {
-  
-}
+export interface boardProps {}

@@ -1,23 +1,23 @@
 .color-menu {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 5px;
-  background-color: #f7eaea;
-  border: 1px solid #cccccc;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-  z-index: 5;
+	position: absolute;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 5px;
+	padding: 5px;
+	background-color: #f7eaea;
+	border: 1px solid #cccccc;
+	border-radius: 5px;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+	z-index: 5;
 }
 
 .color-menu__option {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 6;
+	position: relative;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	z-index: 6;
 }
